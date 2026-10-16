@@ -1,165 +1,62 @@
-/* ═══════════════════════════════════════════════════════════
-   Yağızhan Keskin — Personal Site
-   Script: theme toggle, mobile nav, scroll reveal, active nav
-   ═══════════════════════════════════════════════════════════ */
-
-(function () {
+(() => {
   'use strict';
+  const root = document.documentElement;
+  const themeSelect = document.getElementById('theme-select');
 
-  // ── Theme Toggle ──────────────────────────────────────────
-
-  const html = document.documentElement;
-  const themeToggle = document.getElementById('theme-toggle');
-
-  // Remove no-transition class after first paint
-  window.addEventListener('load', function () {
-    requestAnimationFrame(function () {
-      document.body.classList.remove('no-transition');
-    });
-  });
-
-  function setTheme(theme) {
-    html.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-    themeToggle.setAttribute(
-      'aria-label',
-      theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
-    );
-  }
-
-  themeToggle.addEventListener('click', function () {
-    var current = html.getAttribute('data-theme');
-    setTheme(current === 'dark' ? 'light' : 'dark');
-  });
-
-  // Listen for system preference changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
-    if (!localStorage.getItem('theme')) {
-      setTheme(e.matches ? 'dark' : 'light');
+  function readTheme() {
+    try {
+      const stored = localStorage.getItem('theme');
+      return stored === 'light' || stored === 'dark' ? stored : 'system';
+    } catch (_) {
+      return 'system';
     }
-  });
-
-  // ── Mobile Navigation ─────────────────────────────────────
-
-  var mobileToggle = document.getElementById('mobile-toggle');
-  var navLinks = document.getElementById('nav-links');
-  var isMenuOpen = false;
-
-  function toggleMenu() {
-    isMenuOpen = !isMenuOpen;
-    navLinks.classList.toggle('open', isMenuOpen);
-    mobileToggle.setAttribute('aria-expanded', String(isMenuOpen));
-    mobileToggle.setAttribute(
-      'aria-label',
-      isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
-    );
   }
 
-  mobileToggle.addEventListener('click', toggleMenu);
-
-  // Close mobile menu when a nav link is clicked
-  navLinks.querySelectorAll('.nav__link').forEach(function (link) {
-    link.addEventListener('click', function () {
-      if (isMenuOpen) {
-        toggleMenu();
-      }
-    });
-  });
-
-  // Close on Escape key
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && isMenuOpen) {
-      toggleMenu();
-      mobileToggle.focus();
-    }
-  });
-
-  // ── Active Navigation Link ────────────────────────────────
-
-  var sections = document.querySelectorAll('section[id]');
-  var navLinkEls = document.querySelectorAll('.nav__link');
-
-  function updateActiveLink() {
-    var scrollY = window.scrollY + 100;
-
-    sections.forEach(function (section) {
-      var top = section.offsetTop;
-      var height = section.offsetHeight;
-      var id = section.getAttribute('id');
-
-      if (scrollY >= top && scrollY < top + height) {
-        navLinkEls.forEach(function (link) {
-          link.classList.remove('active');
-          if (link.getAttribute('href') === '#' + id) {
-            link.classList.add('active');
-          }
-        });
-      }
-    });
+  function applyTheme(theme) {
+    // CSS follows the operating system whenever there is no explicit override.
+    if (theme === 'system') delete root.dataset.theme;
+    else root.dataset.theme = theme;
+    themeSelect.value = theme;
   }
 
-  // Throttled scroll listener
-  var scrollTicking = false;
-  window.addEventListener('scroll', function () {
-    if (!scrollTicking) {
-      requestAnimationFrame(function () {
-        updateActiveLink();
-        scrollTicking = false;
+  applyTheme(readTheme());
+  themeSelect.addEventListener('change', () => {
+    const theme = themeSelect.value;
+    applyTheme(theme);
+    try {
+      if (theme === 'system') localStorage.removeItem('theme');
+      else localStorage.setItem('theme', theme);
+    } catch (_) { /* Keep the selection working for this visit. */ }
+  });
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'theme' || event.key === null) applyTheme(readTheme());
+  });
+  // Animate on entry without hiding content before JavaScript runs.
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const animations = new Set();
+  if ('IntersectionObserver' in window && 'animate' in Element.prototype) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.filter((entry) => entry.isIntersecting).forEach((entry, index) => {
+        observer.unobserve(entry.target);
+        if (reducedMotion.matches) return;
+        const animation = entry.target.animate([
+          { opacity: 0, transform: 'translateY(18px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ], { duration: 1100, delay: Math.min(index * 110, 330), fill: 'backwards', easing: 'cubic-bezier(.22, .61, .36, 1)' });
+        animations.add(animation);
+        animation.onfinish = () => animations.delete(animation);
       });
-      scrollTicking = true;
+    }, { threshold: 0.12, rootMargin: '0px 0px -24px 0px' });
+    document.querySelectorAll('.reveal, .cert-list a').forEach((element) => observer.observe(element));
+    function cancelAnimations() {
+      animations.forEach((animation) => animation.cancel());
+      animations.clear();
     }
-  });
-
-  updateActiveLink();
-
-  // ── Scroll Reveal ─────────────────────────────────────────
-
-  var revealElements = document.querySelectorAll('.reveal');
-
-  // Use IntersectionObserver for performant scroll-triggered reveals
-  if ('IntersectionObserver' in window) {
-    var observer = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.12,
-        rootMargin: '0px 0px -40px 0px',
-      }
-    );
-
-    revealElements.forEach(function (el) {
-      observer.observe(el);
+    reducedMotion.addEventListener('change', (event) => {
+      if (event.matches) cancelAnimations();
     });
-  } else {
-    // Fallback: show everything immediately
-    revealElements.forEach(function (el) {
-      el.classList.add('visible');
-    });
+    window.addEventListener('beforeprint', cancelAnimations);
   }
 
-  // ── Smooth scroll for anchor links (fallback) ─────────────
-
-  document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
-    anchor.addEventListener('click', function (e) {
-      var targetId = this.getAttribute('href');
-      if (targetId === '#') return;
-
-      var target = document.querySelector(targetId);
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth' });
-
-        // Update URL without scroll jump
-        if (history.pushState) {
-          history.pushState(null, null, targetId);
-        }
-      }
-    });
-  });
+  document.getElementById('year').textContent = new Date().getFullYear();
 })();

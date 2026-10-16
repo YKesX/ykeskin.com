@@ -1,66 +1,39 @@
-# Yağızhan Keskin — Personal Website
+# Yağızhan Keskin | Personal website
 
-Minimalist editorial portfolio built with pure HTML, CSS, and JavaScript. No frameworks, no build step, no dependencies.
+A personal engineering website built with HTML, CSS and JavaScript. No framework, build step, runtime dependencies or external fonts.
 
-## Files
+## Preview
 
-| File | Purpose |
-|------|---------|
-| `index.html` | Page structure and content |
-| `styles.css` | Design system and layout |
-| `script.js` | Theme toggle, nav, scroll reveal |
-
-## Quick start
-
-Open `index.html` in any browser. That's it.
-
-For local development with live reload, use any static server:
+Open `index.html` directly or serve this directory:
 
 ```bash
-# Python
-python3 -m http.server 8000
-
-# Node (npx)
-npx serve .
+python3 -m http.server 8765
 ```
 
-## Editing content
+Visit `http://localhost:8765`.
 
-All copy is in `index.html`. Each section is clearly marked with HTML comments like `<!-- ═══ About ═══ -->`.
+## Content
 
-**To update text**, edit the HTML directly. No build step required.
+- `index.html`: introduction, six technical focus areas, experience, selected projects, education, leadership, teaching, toolkit, approach, visible certifications and contact details.
+- `styles.css`: neutral light and dark palettes, muted blue accents, responsive layouts, subtle animations and print styles.
+- `script.js`: theme preference, scroll entrance animations and footer year.
+- `assets/favicon.svg`: site icon.
+- `CV-2026oct.pdf`: source for professional and academic details.
 
-**To update links**, search for `href=` in `index.html` and replace URLs.
+Project summaries were checked against the public [LinkedIn profile](https://tr.linkedin.com/in/ya%C4%9F%C4%B1zhan-keskin-001401273) and [GitHub repositories](https://github.com/YKesX). Dates and qualifications follow the supplied CV. The Mechanical Engineering minor and MONAI experience are retained from the original website. The page does not include the CV's home address, date of birth or phone number.
 
-## Theme
+Edit the HTML directly to update content. Keep copy factual and concise. Avoid em dashes, Oxford commas and marketing slogans.
 
-The site supports dark and light modes with a toggle in the navigation. User preference is saved in `localStorage`. On first visit, the site respects the system preference (`prefers-color-scheme`).
+## Appearance
 
-### Customizing colors
+The page uses neutral black, white and gray. Muted blue accents appear in section rules, the contact button, role labels, qualification scores and links. Backgrounds stay neutral.
 
-All design tokens are at the top of `styles.css` under `:root` (light) and `[data-theme="dark"]` (dark). Change the `--color-*` variables to adjust the palette.
+The theme defaults to System and follows operating-system changes. Light and Dark overrides are saved in `localStorage`. Choosing System clears the override. Controls still work for the current visit if storage is unavailable. Without JavaScript, CSS respects the system theme.
 
-The accent color defaults to a muted sage green (`#4f6d5e` / `#7fa893`). To change it, update `--color-accent`, `--color-accent-hover`, and `--color-accent-subtle` in both themes.
+The staggered introduction, 1.1-second scroll reveals and link transitions respect `prefers-reduced-motion`. All seven course certificates remain visible without an accordion. All content is visible without JavaScript, and scroll animations never hide content while waiting for it to enter the viewport. Navigation stays visible on mobile and all controls work with a keyboard.
 
 ## Deployment
 
-This is a static site. Deploy to:
-- **GitHub Pages**: push to `main` branch and enable Pages in repo settings
-- **Netlify / Vercel**: connect repository, no build command needed
-- **Any web server**: upload the three files
+Deploy `index.html`, `styles.css`, `script.js` and `assets/` to any static host using the repository's existing publishing setup. No build is required. The source CV is not required to run the website.
 
-## Favicon
-
-Replace the commented-out favicon link in `index.html` with your own:
-
-```html
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-```
-
-## Open Graph image
-
-For social sharing previews, create an `og-image.png` (1200×630px recommended) and uncomment the OG image meta tag in `index.html`.
-
-## Browser support
-
-Works in all modern browsers (Chrome, Firefox, Safari, Edge). Gracefully degrades for older browsers via progressive enhancement.
+Metadata and the canonical URL use `https://ykeskin.com/`.
